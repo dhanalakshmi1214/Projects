@@ -1,0 +1,837 @@
+npm init -y = packages.json
+
+ npm install typescript ts-node @types/node --save-dev
+ $ npx tsc --init - tsconfig file
+
+ npm install prisma --save-dev 
+  npx prisma init - prisma folder with schema
+  npm install @prisma/client
+
+npm install @prisma/client bcrypt cors express jsonwebtoken multer path socket.io = to install
+npm install @prisma/client argon2 cors express jsonwebtoken multer path socket.io = to install
+npm install --save-dev @types/bcrypt @types/cors @types/express @types/jsonwebtoken @types/multer dotenv nodemon npm-run-all prisma ts-node typescript
+npm install --save-dev @types/bcrypt @types/cors @types/express @types/jsonwebtoken dotenv nodemon npm-run-all prisma ts-node typescript
+
+npm install prisma --save-dev
+npm install @prisma/client
+
+npx prisma generate = to change the prisma into mysql query 
+npx prisma migrate dev --name your_migration_name = new migration
+
+
+
+ npm install
+{
+  "name": "bug_tracker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/server.js",
+  "scripts": {
+    "clean": "rm -rf ./dist",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "build:all": "npm-run-all clean build start",
+    "dev": "nodemon src/server.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^5.18.0",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "path": "^0.12.7",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/multer": "^1.4.11",
+    "@types/node": "^22.1.0",
+    "dotenv": "^16.4.5",
+    "nodemon": "^3.1.4",
+    "npm-run-all": "^4.1.5",
+    "prisma": "^5.18.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  }
+}
+These are the proper procedure to store them 
+
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+npm run build:all = will clean the dist as js file to run freshly
+
+npm run dev = to run nodemon 
+
+
+
+1. WebSocket Setup
+The WebSocket server allows users to establish a persistent connection to exchange messages in real-time.
+
+2. API Endpoints
+You can expose the following REST API endpoints to handle messages:
+
+POST /api/messages: To create a new message.
+GET /api/messages/:bugId: To retrieve all messages related to a specific bug.
+PUT /api/messages/:messageId: To update a message (if needed).
+3. WebSocket Flow
+Connection: When a user connects to the WebSocket server, a connection is established.
+Sending Messages: When a user sends a message, the server receives it, stores it in the database, and optionally broadcasts it to other connected users.
+Receiving Messages: Messages can be broadcasted or retrieved via the REST API.
+4. Postman Usage
+Sending Messages:
+Connect to WebSocket: In Postman, go to the WebSocket tab, enter your server’s WebSocket URL (e.g., ws://localhost:8000), and click Connect.
+Send Message:
+In the WebSocket connection, you can send a message in JSON format:
+json
+Copy code
+{
+  "content": "This is a message",
+  "senderId": 1,
+  "recipientId": 2,
+  "bugId": 1
+}
+The server will process this message, save it to the database, and return a response indicating the message was received.
+
+to retrieve a data and connect WebSocket
+
+all the user password is Baby@1234
+
+
+Key: file (Type: File)
+Key: bugId (Type: Text)
+Key: messageId (Type: Text)\
+
+
+mv frontend ../ = means one directory back
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+You said:
+import express, {Application} from "express";
+import cors from "cors";
+import {PORT} from "./config/dotConfig"
+import userRouters from "./routers/userRouters"
+import authRouters from "./routers/authRouters"
+import projectRouters from "./routers/projectRouter"
+import fileRouters from "./routers/fileRouters"
+import bugRouters from "./routers/bugRouters"
+import bugAssignRouters from "./routers/bugAssRouters"
+import mesRouters from "./routers/mesRouters"
+
+
+
+const app:Application = express();
+app.use(cors());
+app.use(express.json());
+app.use(express.static("public"))
+
+
+
+
+app.use("/users", userRouters);
+app.use("/login", authRouters);
+app.use("/projects",projectRouters);
+app.use("/upload", fileRouters);
+app.use("/bug", bugRouters);
+app.use("/bugAssignment", bugAssignRouters);
+app.use("/message", mesRouters);
+
+
+
+
+
+
+
+
+
+
+
+
+app.listen(PORT, ()=>{
+    console.log(Server is running on the port ${PORT})
+})
+
+export default app;
+import express, { Request, Response } from "express";
+import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { SECRET_KEY, REFRESH_SECRET_KEY } from "../config/dotConfig";
+import { error } from "console";
+
+const prisma = new PrismaClient();
+let refreshTokens : string[] = [];
+
+export const userLogin = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  console.log(Login attempted user email is ${email});
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) {
+      console.log("Incorrect email ID");
+      return  res.status(401).json({ message: "Incorrect Email Id" }); // retrun ah anupanum ilana user ilanu than solum
+    }
+    console.log("User Found :", user);  
+
+    const isMatch = await bcrypt.compare(password, user.password)
+
+    if(isMatch){
+      const accessToken = jwt.sign(
+        {id : user.user_id, email: user.email},
+        SECRET_KEY,
+        {expiresIn: "5m"}
+      )
+      const refreshMyToken = jwt.sign(
+        {id:user.user_id, email: user.email},
+        REFRESH_SECRET_KEY,
+        {expiresIn: "7d"}
+      )
+      refreshTokens.push(refreshMyToken) 
+      res.status(200).json({message : "Successful Login", accessToken, refreshMyToken})
+    }else{
+      res.status(401).json({error: "Incorrect password"})
+    }
+  
+ 
+  } catch (error) {
+    console.error("server error", error);
+    res.status(500).json({Error: "Server error please check the connection"})
+  }
+};
+import express, { Request, Response } from "express";
+import { PrismaClient } from '@prisma/client';
+import { BugStatus, Priority, Role } from "../enumCon/enums";
+
+
+
+const prisma = new PrismaClient();
+
+
+
+
+export const createBugAssignment = async (req: Request, res: Response) => {
+    const { bugId, assignedBy, assignedTo } = req.body;
+  
+    try {
+      const assignedByAdmin = await prisma.user.findUnique({
+        where: { user_id: assignedBy } 
+      });
+  
+      if (!assignedByAdmin || assignedByAdmin.role as Role !== Role.ADMIN) {
+        console.error("Only an Admin can assign bugs", assignedByAdmin);
+        return res.status(400).json({ Error: "Only an Admin can assign bugs", assignedByAdmin });
+      }
+  
+      const newBugAssignment = await prisma.bugAssignment.create({
+        data: {
+          bugsId: bugId,
+          assignedById: assignedBy,
+          assignedToId: assignedTo,
+        }
+      });
+  
+      const newNotifictaion = await prisma.notification.create({
+        data: {
+          message: You have assigned to resolve this bug ${bugId},
+          isRead : true,
+          userId :  assignedTo,
+
+        }
+      })
+
+      console.log("New Bug Assignment created", newBugAssignment);
+      res.status(200).json({ Message: "New Bug Assignment created to the user", newBugAssignment,newNotifictaion });
+    
+    } catch (error) {
+      console.error("Error creating a bug assignment", error);
+      res.status(500).json({ Error: "Error creating a bug assignment", error });
+    }
+  };
+
+export const getBugAssignment = async (req: Request, res: Response) => {
+
+    try {
+        const getAllAsign = await prisma.bugAssignment.findMany();
+
+        console.log("All the bugAssignment are assigned", getAllAsign)
+        res.status(200).json({ Message: "All the bugAssignment are assigned", getAllAsign })
+    } catch (error) {
+
+        console.error("Error getting a BugAssignment", error)
+        res.status(500).json({ Error: "Error getting a BugAssignment", error })
+    }
+
+}
+
+export const updateBugAssignment = async (req: Request<{ userId: string; bugId: string }>, res: Response) => {
+    const userId = parseInt(req.params.userId);
+    const bugId = parseInt(req.params.bugId);
+    const { assignedBy, assignedTo } = req.body;
+  
+    try {
+      const assignedByAdmin = await prisma.user.findUnique({
+        where: { user_id: userId }
+      });
+  
+      if (!assignedByAdmin || assignedByAdmin.role as Role !== Role.ADMIN ) {
+        console.log("Only an Admin  can update a Bug Assignment");
+        return res.status(400).json({ Error: "Only an Admin can update a Bug Assignment", assignedByAdmin });
+      }
+  
+      const updatedBugAssignment = await prisma.bugAssignment.update({
+        where: { bugassigned_id: bugId },
+        data: {
+          assignedById: assignedBy, 
+          assignedToId: assignedTo 
+        }
+      });
+  
+      console.log("Updated Bug Assignment", updatedBugAssignment);
+      return res.status(200).json({ Message: "Updated Bug Assignment", updatedBugAssignment });
+  
+    } catch (error) {
+      console.error("Error updating a bug assignment", error);
+      res.status(500).json({ Error: "Error updating a bug assignment", error });
+    }
+  };
+  
+export const deleteBugAssignment = async (req: Request<{ userId: string; bugId: string }>, res: Response) => {
+    const userId = parseInt(req.params.userId);
+    const bugId = parseInt(req.params.bugId);
+  
+    try {
+      const assignedByAdmin = await prisma.user.findUnique({
+        where: { user_id: userId } 
+      });
+  
+      if (!assignedByAdmin || assignedByAdmin.role as Role !== Role.ADMIN) {
+        console.log("Only an Admin can delete a Bug Assignment");
+        return res.status(400).json({ Error: "Only an Admin can delete a Bug Assignment", assignedByAdmin });
+      }
+  
+      const deletedBugAssignment = await prisma.bugAssignment.delete({
+        where: { bugassigned_id: bugId } 
+      });
+  
+      console.log("Deleted Bug Assignment", deletedBugAssignment);
+      return res.status(200).json({ Message: "Deleted Bug Assignment", deletedBugAssignment });
+  
+    } catch (error) {
+      console.error("Error deleting a bug assignment", error);
+      res.status(500).json({ Error: "Error deleting a bug assignment", error });
+    }
+  };
+import express, { Request, Response } from "express";
+import { BugStatus, Priority, Role } from "../enumCon/enums";
+import { PrismaClient } from '@prisma/client';
+import { CreateBugInput } from "../interface/interfaces";
+import { error } from "console";
+
+const prisma = new PrismaClient();
+
+export const createBug = async (req: Request<{ body: CreateBugInput }>, res: Response) => {
+  const { title, description, status, priority, projectId, createdBy } = req.body;
+
+  try {
+    const createBuyByTester = await prisma.user.findUnique({ where: { user_id: createdBy } });
+    console.log(createBuyByTester)
+    if (!createBuyByTester || createBuyByTester.role as Role !== Role.TESTER) {
+      console.error("Only a Tester can create a Bug", createBuyByTester);
+      return res.status(400).json({ Error: "Only a Tester can create a Bug", createBuyByTester });
+    }
+    const newBug = await prisma.bug.create({
+      data: {
+        title,
+        description,
+        status: status as BugStatus,
+        priority: priority as Priority,
+        project: { connect: { project_id: projectId } },
+        createdBy: { connect: { user_id: createdBy } },
+  
+      },
+    });
+    console.log("New Bug created", newBug);
+    res.status(200).json({ Message: "New Bug created", newBug });
+
+  } catch (error) {
+    console.error("Error creating a bug", error);
+    res.status(500).json({ Error: "Error creating a bug", error });
+  }
+};
+
+export const getAllBug = async (req: Request, res: Response) => {
+  try {
+    const getBugs = await prisma.bug.findMany();
+    console.log("All the bugs are listed", getBugs);
+    res.status(200).json({ Message: "All the Bugs are listed", getBugs });
+   //res.status(getBugs.status).json(getBugs.data)
+  } catch (error) {
+    console.error("Error getting Bugs", error);
+    res.status(500).json({ Error: "Error getting Bugs", error });
+  }
+}
+
+export const updateBug = async (req: Request<{userId:string; bugId:string}>, res: Response) => {
+  const userId = parseInt(req.params.userId);
+  const bugId = parseInt(req.params.bugId);
+  const { title, description, status, priority, projectId, createdBy } = req.body;
+
+  try {
+    const updateByUser = await prisma.user.findUnique({ where: { user_id: userId } });
+    if (!updateByUser || (updateByUser.role !== Role.TESTER && updateByUser.role !== Role.ADMIN)) {
+      console.log("Only a Tester or Admin can update a Bug");
+      return res.status(400).json({ Error: "Only a Tester or Admin can update a Bug", updateByUser });
+    }
+    const updateBugList = await prisma.bug.update({
+      where: { bug_id: bugId },
+      data: {
+        title,
+        description,
+        status,
+        priority,
+        project: { connect: { project_id: projectId } },
+        createdBy: { connect: { user_id: createdBy } },
+       
+      }
+    });
+    console.log("Updated Bug", updateBugList);
+    return res.status(200).json({ Message: "Updated Bug", updateBugList });
+
+  } catch (error) {
+    console.error("Error updating a bug", error);
+    res.status(500).json({ Error: "Error updating a bug", error });
+  }
+}
+
+export const deleteBug = async (req: Request<{userId:string; bugId:string}>, res: Response) => {
+  const userId = parseInt(req.params.userId);
+  const bugId = parseInt(req.params.bugId);
+
+  try {
+    const deleteByUser = await prisma.user.findUnique({ where: { user_id: userId } });
+    if (!deleteByUser || (deleteByUser.role !== Role.TESTER && deleteByUser.role !== Role.ADMIN)) {
+      console.log("Only a Tester or Admin can delete a Bug");
+      return res.status(400).json({ Error: "Only a Tester or Admin can delete a Bug", deleteByUser });
+    }
+    const deletingBug = await prisma.bug.delete({
+      where: { bug_id: bugId }
+    });
+    console.log("Deleted the Bug", deletingBug);
+    return res.status(200).json({ Message: "Deleted the Bug", deletingBug });
+
+  } catch (error) {
+    console.error("Error deleting a bug", error);
+    res.status(500).json({ Error: "Error deleting a bug", error });
+  }
+}
+import express, {Request, Response} from "express";
+import {PrismaClient} from "@prisma/client";
+import multer, {diskStorage} from "multer";
+
+import path from 'path'
+
+
+const prisma = new PrismaClient;
+
+
+
+const storage = multer.diskStorage({
+    destination:(req,file,cb)=>{
+        cb(null, path.join(__dirname, "../uploads"))
+    },
+    filename:(req,file,cb)=>{
+        cb(null, file.originalname)
+    }
+})
+ const upload = multer({storage}).single('file') 
+ export const uploadFile = async(req:Request,res:Response)=>{
+upload(req ,res, async (error)=>{
+        if(error){
+            console.log("Error uploading file", error)
+            return res.status(400).json({Error:"Error uploading file", error})
+        }
+      if(!req.file){
+        console.log("No file uploaded")
+        return res.json({Error: "No file uploaded", error})
+      }
+      try {
+        const filename = req.file.originalname;
+        const filetype = req.file.mimetype;
+       
+   
+       // const {bugId,messageId} = req.body
+       const bugId = parseInt(req.body.bugId);
+       const messageId = parseInt(req.body.messageId);
+        const newFile = await prisma.file.create({
+            data: {filename,filetype, bugId, messageId}
+        })
+
+        console.log("New file created", newFile);
+        res.status(200).json({Message: "New file created", newFile})
+      } catch (error) {
+        console.error("Error creating a file", error)
+        res.status(500).json({Error: "Error creating a file", error})
+      }
+    })
+ }
+   
+import express, { Application, Request, Response } from "express";
+import { PrismaClient } from "@prisma/client";
+import { CreateMessageInput } from "../interface/interfaces";
+//import http from 'http';
+import { createServer } from "http";
+// import { Server } from "socket.io";
+import { Server, Socket } from 'socket.io';
+import { error } from "console";
+
+const app: Application = express();
+const prisma = new PrismaClient();
+
+
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "http://localhost:8000",
+  },
+});
+
+
+
+io.on("connection", (socket) => { // server side
+  console.log("A user connected");
+
+  socket.on("newuser",   (username) => { // client side
+    socket.broadcast.emit("update", username + "joined the conversation")  
+  });
+  socket.on("exituser",   (username) => { // client side
+    socket.broadcast.emit("update", username + "joined the conleft the conversation")  
+  });
+  socket.on("chat", (message) => {
+    socket.broadcast.emit("chat", message)  
+  });
+  
+ 
+
+  
+});
+
+export const createMessage = async (
+  req: { body: CreateMessageInput },
+  res: Response
+) => {
+  const { content, senderId, recipientId, bugId } = req.body;
+
+  try {
+    const createMessage = await prisma.message.create({
+      data: { content, senderId, recipientId, bugId },
+    });
+    console.log("Message created", createMessage);
+    res.status(200).json({ Message: "Message created", createMessage });
+  } catch (error) {
+    console.error("Error creating a message", error);
+    res.status(500).json({ Error: "Error creating a message", error });
+  }
+};
+
+export const getMessagesByBug = async (
+  req: Request<{ bugId: string }>,
+  res: Response
+) => {
+  const { bugId } = req.params;
+  try {
+    const allMessage = await prisma.message.findMany({
+      where: { bugId: parseInt(bugId) },
+      include: { sender: true, recipient: true },
+    });
+    console.log("All messages are received regarding a bug", allMessage);
+    res
+      .status(200)
+      .json({
+        Message: "All messages are received regarding a bug",
+        allMessage,
+      });
+  } catch (error) {
+    console.error("Error getting a message", error);
+    res.status(500).json({ Error: "Error getting a message", error });
+  }
+};
+
+export const updateMessage = async (
+  req: Request<{ messageId: string }>,
+  res: Response
+) => {
+  const { messageId } = req.params;
+  const { content } = req.body;
+
+  try {
+    const updateMes = await prisma.message.update({
+      where: { message_id: parseInt(messageId) },
+      data: { content },
+    });
+    console.log("Updating a message", updateMes);
+    res.status(200).json({ Message: "Updating a message", updateMes });
+  } catch (error) {
+    console.error("Error Updating a message", error);
+    res.status(500).json({ Error: "Error Updating a message", error });
+  }
+};
+
+export const deleteMessage = async (
+  req: Request<{ messageId: string }>,
+  res: Response
+) => {
+  const { messageId } = req.params;
+
+  try {
+    const deletemes = await prisma.message.delete({
+      where: { message_id: parseInt(messageId) },
+    });
+    console.log("Deleted a message", deletemes);
+    res.status(200).json({ Message: "Deleted a message", deletemes });
+  } catch (error) {}
+};
+
+
+httpServer.listen(3000, () => {
+  console.log("Server is listening on port 3000");
+});
+import express, {Request, Response} from "express";
+import { PrismaClient } from "@prisma/client";
+import { CreateNotificationInput} from "../interface/interfaces"
+
+const prisma = new PrismaClient();
+
+
+// export const createNotification = async (req:{body: CreateNotificationInput}, res:Response) =>{
+//   const { message , isRead, userId } req.body
+// }
+
+export const getAllNotification = async (req:Request, res:Response)=>{
+
+    try {
+        const getNotify = await prisma.notification.findMany();
+
+        console.log("All the notifictaions listed", getAllNotification);
+        res.status(200).json({Message: "All the notifictaions listed", getAllNotification})
+    } catch (error) {
+       console.error("Error getting a notification", error) 
+       res.status(500).json({Error:"Error getting a notification", error })
+    }
+   
+}
+
+
+export const deleteNotification = async (req:Request, res:Response) =>{
+    const { notificationId } = req.params;
+
+    try {
+        // const deleteNotify = await prisma.notification.delete({
+        //     where: {notificationId :notification_id }
+        // })
+    } catch (error) {
+        console.error("Error deleting a notification", error) 
+       res.status(500).json({Error:"Error deleting a notification", error })
+    }
+}import Express, { Request, Response } from "express";
+import { PrismaClient } from "@prisma/client";
+import { CreateProjectInput } from "../interface/interfaces";
+import { Role} from "../enumCon/enums"
+
+const prisma = new PrismaClient();
+
+export const createProject = async (req: { body: CreateProjectInput },res: Response) => {
+  const { project_name, description } = req.body;
+  
+  try {
+    const newProject = await prisma.project.create({
+      data: { project_name, description },
+    });
+    console.log("New project Created " ,newProject);
+    res.status(201).json({message: "New project Created",newProject});
+  } catch (error) {
+    console.log("Error creating a project", error);
+   res.status(500).json({Error:"Error creating a project", error})
+  }
+};
+
+
+export const getAllProject = async(req:Request,res:Response)=>{
+try {
+    const getProject = await prisma.project.findMany();
+    console.log("All the projects are listed",getProject)
+    res.status(201).json({Message: "All the projects are listed", getProject})
+} catch (error) {
+    console.error("Error fetching the project", error)
+    res.status(500).json({Error: "Error fetching the project", error})
+}
+}
+
+export const updateProject = async( req:Request<{userId :string,projectId :string}>,res:Response) =>{
+  const  userId = parseInt(req.params.userId);
+  const { project_name, description } = req.body;
+  const projectId = parseInt(req.params.projectId)
+
+  try {
+    const updateBYAdmin = await prisma.user.findUnique({where: {user_id: userId}})
+
+    if(!updateBYAdmin || updateBYAdmin.role as Role !== Role.ADMIN){
+      console.log("Only a Admin can update project", updateBYAdmin)
+      res.status(400).json({Error : Only a Admin can update project. ${updateBYAdmin}})
+    }
+
+    const updatePro = await prisma.project.update({ 
+      where: {project_id: projectId},
+      data: { project_name,description}
+    })
+
+    console.log(Project has been updated ${projectId}, updatePro)
+    res.status(200).json({Message :Project has been updated ${projectId}, updatePro })
+  } catch (error) {
+    console.error("Error updating a project", error)
+    res.status(500).json({Error: "Error updating a project", error})
+  }
+}
+
+
+export const deleteProject = async(req:Request<{userId :string,projectId :string}>,res:Response) =>{
+  const userId = parseInt(req.params.userId)
+  const projectId = parseInt(req.params.projectId)
+
+  try {
+    const deleteByAdmin =await prisma.user.findUnique({where: {user_id: userId}});
+    if(!deleteByAdmin || deleteByAdmin.role as Role !== Role.ADMIN){
+      console.log("Only a Admin can delete project", deleteByAdmin)
+      res.status(400).json({Error : Only a Admin can delete project. ${deleteByAdmin}})
+    }
+
+    const delProject = await prisma.project.delete({
+      where : {project_id : projectId},
+      
+    })
+    console.log("Deleted Bug project", delProject);
+    return res.status(200).json({ Message: "Deleted Bug project", delProject });
+
+  } catch (error) {
+    console.error("Error deleting a project", error);
+    res.status(500).json({ Error: "Error deleting a project", error });
+  }
+};
+import express, { Request, Response } from "express";
+import { PrismaClient, Role } from "@prisma/client";
+import bcrypt from "bcrypt";
+import { CreateUserInput } from "../interface/interfaces";
+import { error } from "console";
+
+const prisma = new PrismaClient();
+
+export const createUser = async (req: { body: CreateUserInput },res: Response) => {
+  const { username, email, password, isActive, role } = req.body;
+  try {
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    console.log(hashedPassword);
+
+    const newUser = await prisma.user.create({
+      data: {
+        username,
+        email,
+        password: hashedPassword,
+        isActive,
+        role: role as Role,
+      },
+    });
+    console.log(newUser);
+    res.status(201).json({message: "New user Created",newUser});
+  } catch (error) {
+    console.error("Error creating a user", error);
+    res.status(500).json({ message: "Error creating a user",error });
+  }
+};
+
+export const getAllUser = async (req: Request, res: Response) => {
+  try {
+    const getUser = await prisma.user.findMany();
+    res.status(201).json({Message:"All the users are listed",getUser});
+    console.log("All the users are listed",getUser);
+  } catch (error) {
+    console.error("Error getting all user", error);
+    res.status(500).json({ error: "Error getting a user" });
+  }
+};
+
+
+
+export const updateUser = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { username, email, password, isActive, role } = req.body;
+  try {
+    const updateUser = await prisma.user.update({
+      where: { user_id: parseInt(userId) },
+      data: { username, email, password, isActive, role: role as Role },
+    });
+
+    console.log(Updated the ${userId} with the deatils,updateUser);
+    res.status(200).json({Message :Updated the ${userId} with the deatils,updateUser});
+
+  } catch (error) {
+    const errorMessage = (error as Error).message
+    console.error("Error updating User details",  errorMessage || error);
+    res.status(500).json({ error: "Error updating User details" });
+  }
+};
+
+
+
+export const deleteUser = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  console.log(Deleting the user with userId ${userId})
+  try {
+    const deleteUser = await prisma.user.delete({
+      where: { user_id: parseInt(userId) },
+      
+    });
+    console.log(Deleted user ${userId},deleteUser)
+    res.status(200).json({Message: Deleted user ${userId},deleteUser});
+  } catch (error) {
+    const errorMessage = (error as Error).message 
+    console.error("Error deleting the user", errorMessage);
+    res.status(500).json({ error: "Error deleting the user" });
+  }
+};
+I need front end with html css and js for my backend and my approach on backend is user like admin tester and developer everyone is logging in after that if the developer sign he can view his assigned bug and he can send messages to every users with file attachment also and tester has a role of creating bug andadminhas role of assigning to every developer ?
+

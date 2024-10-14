@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum LeaveStatus {
+  APPROVED
+  PENDING
+  REJECTED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  HALFDAY
+}
+
+enum ReportType {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  username     String
+  employeeId   String         @unique
+  email        String?
+  image        String?
+  password     String
+  isActive     Boolean?
+  joinedDate   String
+  experience   String
+  adharNo      String?
+  panNo        String?
+  role         Role
+  activity     Activity[]
+  leaves       Leave[]
+  report       Report[]
+  notification Notification[]
+  salary       Salary[]
+}
+
+model Activity {
+  id               Int              @id @default(autoincrement())
+  loginTime        DateTime         @default(now())
+  logoutTime       DateTime?
+  attendanceStatus AttendanceStatus
+  date             DateTime
+  dayOfWeek        String
+  isWeekend        Boolean
+  isMandatoryLeave Boolean
+  officialLeave    Boolean          @default(false)
+  productionHour   Int?
+  totalDays        Int?
+  leaveId          Int?
+  leave            Leave?           @relation(fields: [leaveId], references: [id])
+  userId           Int
+  user             User             @relation(fields: [userId], references: [id])
+}
+
+model Leave {
+  id             Int            @id @default(autoincrement())
+  status         LeaveStatus
+  availableLeave Int
+  startTime      String?
+  endTime        String?
+  leaveReason    String?
+  mailToId       String?
+  leaveAppliedAt DateTime       @default(now())
+  approvedAt     DateTime       @default(now())
+  userId         Int
+  user           User           @relation(fields: [userId], references: [id])
+  activity       Activity[]
+  notification   Notification[]
+}
+
+model Report {
+  id         Int        @id @default(autoincrement())
+  reportType ReportType
+  reportData Json
+  userId     Int
+  user       User       @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  leaveId   Int?
+  leave     Leave?   @relation(fields: [leaveId], references: [id])
+}
+
+model Salary {
+  id          Int      @id @default(autoincrement())
+  baseAmount  Int
+  bonus       Int?
+  deductions  Int?
+  netAmount   Int
+  paymentDate DateTime
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+}

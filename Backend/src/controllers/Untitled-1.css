@@ -1,0 +1,134 @@
+/* Main LoginForm Styles */
+.LoginForm {
+	margin: 100px auto;
+	background-color: #ffffff;
+	border-radius: 10px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.2);
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
+	animation: fadeIn 0.5s ease forwards;
+	width: 400px; /* Fixed width for the form */
+	padding: 2rem; /* Added padding inside the form */
+  }
+  
+  /* Centering the form in the viewport */
+  .LoginFormContainer {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column; /* Align items vertically */
+  }
+  
+  /* Header styles */
+  .LoginForm h2 {
+	text-align: center;
+	color: #2A9D8F; /* Theme color for the header */
+	font-size: 2rem;
+	font-weight: 600;
+	margin-bottom: 1rem; /* Spacing below the header */
+  }
+  
+  /* Label styles */
+  .LoginForm label {
+	display: block;
+	margin: 1rem 0 0.5rem;
+	font-weight: 500;
+	color: #264653; /* Theme color for labels */
+  }
+  
+  /* Input styles */
+  .LoginForm input {
+	width: 100%;
+	padding: 0.75rem;
+	margin-top: 0.2rem;
+	border: 1px solid #ccc;
+	border-radius: 8px;
+	font-size: 1rem;
+	color: #264653; /* Input text color */
+	background-color: #f9f9f9; /* Light background for inputs */
+	transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  /* Input focus styles */
+  .LoginForm input:focus {
+	border-color: #2A9D8F; /* Theme color on focus */
+	box-shadow: 0 0 5px rgba(42, 157, 143, 0.4); /* Soft focus shadow */
+	outline: none;
+  }
+  
+  /* Button styles */
+  .LoginForm button {
+	padding: 0.75rem 1.5rem;
+	background-color: #2A9D8F; /* Primary button color */
+	color: #ffffff;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	font-size: 1.1rem;
+	margin-top: 1rem;
+	transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  /* Button hover and active styles */
+  .LoginForm button:hover {
+	background-color: #21867a; /* Darker shade for hover */
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Hover shadow */
+	transform: translateY(-2px); /* Slight lift on hover */
+  }
+  .LoginForm button:active {
+	transform: translateY(0); /* Remove lift on click */
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Reduce shadow on click */
+  }
+  
+  /* Error message styles */
+  .error-message {
+	color: #e76f51; /* Theme color for errors */
+	font-size: 0.9rem;
+	text-align: center;
+	margin-top: 1rem;
+  }
+  
+  /* Link styles */
+  .LoginForm p a {
+	color: #264653; /* Theme color for links */
+	text-decoration: none;
+	font-weight: 500;
+	transition: color 0.3s ease;
+  }
+  
+  .LoginForm p a:hover {
+	color: #2A9D8F; /* Link hover color */
+  }
+  
+  /* Fade-in animation */
+  @keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(-20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+  }
+  
+  /* Notification Container */
+  .NotificationContainer {
+	position: fixed;
+	top: 10%;
+	left: 50%;
+	transform: translateX(-50%);
+	background-color: #e9c46a; /* Theme color for notifications */
+	padding: 1rem 2rem;
+	border-radius: 8px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	animation: fadeIn 0.5s ease forwards;
+	z-index: 1000;
+  }
+  
+  /* Notification Message */
+  .NotificationMessage {
+	color: #264653; /* Text color for notifications */
+	font-weight: 500;
+	text-align: center;
+  }
+  
